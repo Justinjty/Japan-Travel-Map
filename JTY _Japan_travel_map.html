@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japan Travel Itinerary Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .info {
+            padding: 12px;
+            font: 14px/1.4 Arial, sans-serif;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            max-width: 300px;
+        }
+        .info h3 {
+            margin: 0 0 8px;
+            color: #333;
+            font-size: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .info p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .legend {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            line-height: 1.4;
+        }
+        .legend h4 {
+            margin: 0 0 10px;
+            color: #333;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 2px solid #fff;
+        }
+        .route-label {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        /* Add grayscale filter to map tiles only */
+        .leaflet-tile {
+            filter: grayscale(100%) contrast(110%);
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map centered on Japan
+        const map = L.map('map').setView([36.2, 138.25], 6);
+
+        // Add grayscale base map
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Color scheme for each day
+        const dayColors = {
+            "June 29": "#e74c3c",  // Red
+            "June 30": "#3498db",   // Blue
+            "July 1": "#2ecc71",    // Green
+            "July 2": "#9b59b6",    // Purple
+            "July 3": "#f39c12"     // Orange
+        };
+
+        // Destinations grouped by day in chronological order
+        const destinationsByDay = [
+            {
+                date: "June 29",
+                destinations: [{
+                    name: "Dotonbori",
+                    latlng: [34.6697, 135.5009],
+                    type: "food",
+                    time: "18:00-21:00"
+                }]
+            },
+            {
+                date: "June 30",
+                destinations: [{
+                    name: "Osaka Castle",
+                    latlng: [34.6873, 135.5256],
+                    type: "sightseeing",
+                    time: "09:00-13:00"
+                }]
+            },
+            {
+                date: "July 1",
+                destinations: [{
+                    name: "Expo 2025 Osaka",
+                    latlng: [34.6525, 135.5063],
+                    type: "event",
+                    time: "10:00-17:00"
+                }]
+            },
+            {
+                date: "July 2",
+                destinations: [
+                    {
+                        name: "Fushimi Inari Shrine",
+                        latlng: [34.9671, 135.7727],
+                        type: "sightseeing",
+                        time: "08:00-12:00"
+                    },
+                    {
+                        name: "Kiyomizu-dera",
+                        latlng: [34.9949, 135.7850],
+                        type: "sightseeing",
+                        time: "13:30-16:00"
+                    }
+                ]
+            },
+            {
+                date: "July 3",
+                destinations: [
+                    {
+                        name: "Todai-ji",
+                        latlng: [34.6889, 135.8398],
+                        type: "sightseeing",
+                        time: "09:30-12:00"
+                    },
+                    {
+                        name: "Nara Park",
+                        latlng: [34.6851, 135.8428],
+                        type: "nature",
+                        time: "13:30-16:30"
+                    }
+                ]
+            }
+        ];
+
+        // Create a feature group to hold all markers and routes
+        const featureGroup = L.featureGroup().addTo(map);
+        const markers = [];
+
+        // Process each day's destinations
+        destinationsByDay.forEach(dayData => {
+            const dayColor = dayColors[dayData.date];
+            const dayDestinations = dayData.destinations;
+            
+            // Add markers and connect with routes
+            dayDestinations.forEach((dest, index) => {
+                // Add marker
+                const marker = L.circleMarker(dest.latlng, {
+                    radius: 10,
+                    fillColor: dayColor,
+                    color: "#ffffff",
+                    weight: 1.5,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(featureGroup);
+                
+                // Add popup
+                marker.bindPopup(`
+                    <div class="info">
+                        <h3>${dest.name}</h3>
+                        <p><strong>Date:</strong> ${dayData.date}</p>
+                        <p><strong>Time:</strong> ${dest.time}</p>
+                        <p><strong>Type:</strong> ${dest.type}</p>
+                    </div>
+                `);
+                
+                markers.push(marker);
+                
+                // Connect to next destination if exists
+                if (index < dayDestinations.length - 1) {
+                    const nextDest = dayDestinations[index + 1];
+                    const route = L.polyline([dest.latlng, nextDest.latlng], {
+                        color: dayColor,
+                        weight: 4,
+                        opacity: 0.8,
+                        dashArray: '5, 5'
+                    }).addTo(featureGroup);
+                    
+                    // Add distance label
+                    const midPoint = L.latLng(
+                        (dest.latlng[0] + nextDest.latlng[0]) / 2,
+                        (dest.latlng[1] + nextDest.latlng[1]) / 2
+                    );
+                    
+                    const distance = Math.round(
+                        map.distance(dest.latlng, nextDest.latlng) / 1000
+                    );
+                    
+                    L.tooltip({
+                        direction: 'center',
+                        permanent: true,
+                        className: 'route-label',
+                        opacity: 0.9
+                    })
+                    .setLatLng(midPoint)
+                    .setContent(`${distance} km`)
+                    .addTo(featureGroup);
+                }
+            });
+        });
+
+        // Add legend
+        const legend = L.control({position: 'bottomright'});
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = '<h4>Travel Itinerary</h4>';
+            
+            Object.entries(dayColors).forEach(([date, color]) => {
+                const dayDestinations = destinationsByDay.find(d => d.date === date)?.destinations || [];
+                const placeNames = dayDestinations.map(d => d.name).join(' → ');
+                
+                div.innerHTML += `
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:${color}"></div>
+                        <div>
+                            <strong>${date}</strong><br>
+                            <small>${placeNames}</small>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return div;
+        };
+        legend.addTo(map);
+
+        // Fit map to show all markers with padding
+        if (markers.length > 0) {
+            map.fitBounds(featureGroup.getBounds().pad(0.2));
+        }
+    </script>
+</body>
+</html>
